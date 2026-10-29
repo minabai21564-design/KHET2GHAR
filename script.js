@@ -275,16 +275,6 @@ async function submit(form, fn) {
 
 $('#loginForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  submit(e.target, async (data) => {
-    const r = await api('/api/login', data);
-    e.target.reset();
-    setUser({ id: r.id, name: r.name, role: r.role, farmerId: r.farmerId, buyerId: r.buyerId });
-  });
-});
-
-
-$('#loginForm').addEventListener('submit', (e) => {
-  e.preventDefault();
 
   submit(e.target, async (data) => {
     try {
