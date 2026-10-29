@@ -1,5 +1,18 @@
 // Khet2Ghar front-end. Flow: splash -> log in / sign up -> role -> account form -> home.
 // The login is saved on this device, so the user is not asked to log in again.
+// Firebase connection
+const firebaseConfig = {
+  apiKey: "AIzaSyDltn7KuX2BuY1QsYaLfUmJCuvqDdYEYpE",
+  authDomain: "khet2ghar-e62f3.firebaseapp.com",
+  projectId: "khet2ghar-e62f3",
+  storageBucket: "khet2ghar-e62f3.firebasestorage.app",
+  messagingSenderId: "689040100670",
+  appId: "1:689040100670:web:9007604a3c83270c4cb06f"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 const $ = (s) => document.querySelector(s);
 const ICONS = { Vegetables: '🥬', Fruits: '🍎', Grains: '🌾', Pulses: '🫘', Dairy: '🥛', Other: '🧺' };
 const NAME_ICONS = { tomato: '🍅', potato: '🥔', apple: '🍎', wheat: '🌾', onion: '🧅', mango: '🥭', banana: '🍌', carrot: '🥕', corn: '🌽', rice: '🍚', chilli: '🌶️', brinjal: '🍆' };
