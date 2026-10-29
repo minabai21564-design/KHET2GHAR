@@ -222,18 +222,56 @@ async function submit(form, fn) {
   btn.disabled = false; btn.textContent = label;
 }
 
+
 ['farmer', 'buyer'].forEach((role) => {
   const form = $(`#${role}Form`);
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+
     submit(form, async (data) => {
-      const r = await api(`/api/register/${role}`, data);
-      form.reset();
-      setUser({ id: r.id, name: r.name, role });
-      toast(`Account created. Your ID is ${r.id}.`);
+      try {
+        const credential = await auth.createUserWithEmailAndPassword(
+          data.email,
+          data.password
+        );
+
+        const uid = credential.user.uid;
+
+        await db.collection('users').doc(uid).set({
+          name: data.name,
+          email: data.email,
+          username: data.username,
+          phone: data.phone,
+          address: data.address,
+          role: role,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        form.reset();
+
+        setUser({
+          id: uid,
+          name: data.name,
+          role: role,
+          email: data.email
+        });
+
+        toast('Account created successfully!');
+      } catch (error) {
+        console.error('Signup error:', error);
+        toast(
+          error.code === 'auth/email-already-in-use'
+            ? 'This email is already registered.'
+            : error.code === 'auth/weak-password'
+            ? 'Password must be at least 6 characters.'
+            : 'Signup failed. Please check your details and try again.'
+        );
+      }
     });
   });
 });
+
 
 $('#loginForm').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -244,16 +282,53 @@ $('#loginForm').addEventListener('submit', (e) => {
   });
 });
 
-$('#cropForm').addEventListener('submit', (e) => {
+
+$('#loginForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  const form = e.target;
-  submit(form, async (data) => {
-    await api('/api/crops', { ...data, farmerId: user.farmerId || user.id });
-    form.reset();
-    toast('Crop listed. Buyers can see it now.');
-    loadCrops();
+
+  submit(e.target, async (data) => {
+    try {
+      const credential = await auth.signInWithEmailAndPassword(
+        data.email,
+        data.password
+      );
+
+      const uid = credential.user.uid;
+
+      const doc = await db.collection('users').doc(uid).get();
+
+      if (!doc.exists) {
+        await auth.signOut();
+        toast('User profile not found. Please sign up again.');
+        return;
+      }
+
+      const profile = doc.data();
+
+      e.target.reset();
+
+      setUser({
+        id: uid,
+        name: profile.name,
+        role: profile.role,
+        email: profile.email
+      });
+
+      toast('Login successful!');
+    } catch (error) {
+      console.error('Login error:', error);
+
+      toast(
+        error.code === 'auth/invalid-credential' ||
+        error.code === 'auth/user-not-found' ||
+        error.code === 'auth/wrong-password'
+          ? 'Email or password is incorrect.'
+          : 'Login failed. Please try again.'
+      );
+    }
   });
 });
+
 
 /* ---------- Marketplace ---------- */
 async function loadCrops() {
