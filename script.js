@@ -322,11 +322,32 @@ $('#loginForm').addEventListener('submit', (e) => {
 
 /* ---------- Marketplace ---------- */
 async function loadCrops() {
-  try { crops = await api('/api/crops'); if (!Array.isArray(crops)) throw new Error(); }
-  catch { crops = []; $('#stats').textContent = 'Could not load listings. Check your internet connection.'; }
+  try {
+    const snap = await db.collection('crops').get();
+
+    crops = snap.docs.map((doc) => {
+      const d = doc.data();
+
+      return {
+        ID: doc.id,
+        'Farmer ID': d.farmerId || '',
+        'Farmer Name': d.farmerName || '',
+        Crop: d.crop || '',
+        Category: d.category || 'Other',
+        'Price (Rs/kg)': Number(d.price) || 0,
+        'Quantity (kg)': Number(d.quantity) || 0,
+        Location: d.location || ''
+      };
+    }).filter((c) => c['Quantity (kg)'] > 0);
+
+  } catch (error) {
+    console.error('Load crops error:', error);
+    crops = [];
+    $('#stats').textContent = 'Could not load listings. Check Firestore rules.';
+  }
+
   renderCrops();
 }
-
 function renderCrops() {
   const q = $('#q').value.toLowerCase(), cat = $('#cat').value, loc = $('#loc').value.toLowerCase(), sort = $('#sort').value;
   const list = crops.filter((c) =>
