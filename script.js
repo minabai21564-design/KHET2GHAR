@@ -399,7 +399,44 @@ $('#orderForm').addEventListener('submit', async (e) => {
     loadCrops();
   } catch (err) { toast(err.message, true); }
 });
+$('#cropForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
 
+  if (!auth.currentUser || user.role !== 'farmer') {
+    toast('Please log in as a farmer.', true);
+    return;
+  }
+
+  const form = e.currentTarget;
+  const data = Object.fromEntries(new FormData(form));
+  const btn = form.querySelector('button[type="submit"]');
+
+  btn.disabled = true;
+
+  try {
+    await db.collection('crops').add({
+      farmerId: auth.currentUser.uid,
+      farmerName: user.name,
+      crop: String(data.crop).trim(),
+      category: data.category,
+      price: Number(data.price),
+      quantity: Number(data.quantity),
+      location: String(data.location || '').trim(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    form.reset();
+    toast('Crop listing added successfully!');
+    await loadCrops();
+
+  } catch (error) {
+    console.error('Crop save error:', error);
+    toast(error.message || 'Could not save crop.', true);
+
+  } finally {
+    btn.disabled = false;
+  }
+});
 $('#exportBtn').addEventListener('click', () => {
   if (typeof XLSX === 'undefined') return toast('Excel library did not load. Check your internet connection.', true);
   const db = Local.load(), wb = XLSX.utils.book_new();
