@@ -265,7 +265,7 @@ async function submit(form, fn) {
             ? 'This email is already registered.'
             : error.code === 'auth/weak-password'
             ? 'Password must be at least 6 characters.'
-            : 'Signup failed. Please check your details and try again.'
+            : (error.code + ': ' + error.message)
         );
       }
     });
