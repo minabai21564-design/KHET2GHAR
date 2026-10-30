@@ -390,16 +390,75 @@ $('#grid').addEventListener('click', (e) => {
 $('#orderQty').addEventListener('input', (e) => {
   $('#orderTotal').textContent = money((Number(e.target.value) || 0) * selected['Price (Rs/kg)']);
 });
-
 $('#orderForm').addEventListener('submit', async (e) => {
   if (e.submitter?.value !== 'ok') return;
   e.preventDefault();
+
+  if (!auth.currentUser || !selected) {
+    toast('Please log in first.', true);
+    return;
+  }
+
+  const qty = Number($('#orderQty').value);
+
+  if (!qty || qty <= 0 || qty > selected['Quantity (kg)']) {
+    toast('Please enter a valid available quantity.', true);
+    return;
+  }
+
   try {
-    const r = await api('/api/orders', { buyerId: user.buyerId || user.id, cropId: selected.ID, quantity: $('#orderQty').value });
+    const buyerDoc = await db.collection('users')
+      .doc(auth.currentUser.uid).get();
+
+    if (!buyerDoc.exists) {
+      toast('Buyer profile not found. Please sign up again.', true);
+      return;
+    }
+
+    const buyer = buyerDoc.data();
+    const total = qty * selected['Price (Rs/kg)'];
+
+    await db.runTransaction(async (transaction) => {
+      const cropRef = db.collection('crops').doc(selected.ID);
+      const cropDoc = await transaction.get(cropRef);
+
+      if (!cropDoc.exists) throw new Error('Crop is no longer available.');
+
+      const crop = cropDoc.data();
+      const stock = Number(crop.quantity || 0);
+
+      if (qty > stock) throw new Error(`Only ${stock} kg available.`);
+
+      const orderRef = db.collection('orders').doc();
+
+      transaction.update(cropRef, {
+        quantity: stock - qty
+      });
+
+      transaction.set(orderRef, {
+        buyerId: auth.currentUser.uid,
+        buyerName: buyer.name || '',
+        buyerEmail: buyer.email || '',
+        cropId: selected.ID,
+        crop: crop.crop || '',
+        farmerId: crop.farmerId || '',
+        farmerName: crop.farmerName || '',
+        quantityKg: qty,
+        total: total,
+        payment: buyer.payment || 'UPI',
+        status: 'Confirmed',
+        orderedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
     $('#orderDlg').close();
-    toast(`Order ${r.id} confirmed. Total ${money(r.total)}. The farmer has been notified.`);
-    loadCrops();
-  } catch (err) { toast(err.message, true); }
+    toast('Order placed successfully!');
+    await loadCrops();
+
+  } catch (err) {
+    console.error('Order error:', err);
+    toast(err.message || 'Could not place order.', true);
+  }
 });
 $('#cropForm').addEventListener('submit', async (e) => {
   e.preventDefault();
