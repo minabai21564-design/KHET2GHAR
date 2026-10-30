@@ -350,16 +350,27 @@ async function loadCrops() {
 
   renderCrops();
 }
+
 function renderCrops() {
-  const q = $('#q').value.toLowerCase(), cat = $('#cat').value, loc = $('#loc').value.toLowerCase(), sort = $('#sort').value;
+  const q = ($('#q').value || '').toLowerCase().trim();
+  const cat = $('#cat').value;
+  const loc = ($('#loc').value || '').toLowerCase().trim();
+  const sort = $('#sort').value;
+
   const list = crops.filter((c) =>
-    String(c.Crop).toLowerCase().includes(q) && (!cat || c.Category === cat) && String(c.Location).toLowerCase().includes(loc));
+    String(c.Crop || '').toLowerCase().includes(q) &&
+    (!cat || String(c.Category || '').toLowerCase() === cat.toLowerCase()) &&
+    String(c.Location || '').toLowerCase().includes(loc)
+  );
+
   if (sort === 'low') list.sort((a, b) => a['Price (Rs/kg)'] - b['Price (Rs/kg)']);
   else if (sort === 'high') list.sort((a, b) => b['Price (Rs/kg)'] - a['Price (Rs/kg)']);
-  else list.reverse();
 
-  $('#stats').textContent = `${crops.length} live listing${crops.length === 1 ? '' : 's'} from ${new Set(crops.map((c) => c['Farmer ID'])).size} farmer(s).`;
-  const canOrder = user && user.role !== 'farmer';
+  $('#stats').textContent =
+    `${crops.length} live listing${crops.length === 1 ? '' : 's'} from ${new Set(crops.map((c) => c['Farmer ID'])).size} farmer(s).`;
+
+  const canOrder = !!auth.currentUser && user && user.role === 'buyer';
+
   $('#grid').innerHTML = list.length ? list.map((c) => `
     <article class="crop">
       <div class="pic" aria-hidden="true">${iconFor(c)}</div>
@@ -371,8 +382,9 @@ function renderCrops() {
         ${canOrder ? `<button class="btn dark" data-id="${esc(c.ID)}">Order now</button>` : ''}
       </div>
     </article>`).join('')
-    : '<div class="empty">No produce matches yet. Farmers can add listings and they will appear here.</div>';
+    : '<div class="empty">No produce matches yet. Check your search, category and location filters.</div>';
 }
+
 
 ['#q', '#cat', '#loc', '#sort'].forEach((s) => $(s).addEventListener('input', renderCrops));
 
