@@ -273,6 +273,7 @@ async function submit(form, fn) {
 });
 
 
+
 $('#loginForm').addEventListener('submit', (e) => {
   e.preventDefault();
 
@@ -284,41 +285,42 @@ $('#loginForm').addEventListener('submit', (e) => {
       );
 
       const uid = credential.user.uid;
-
       const doc = await db.collection('users').doc(uid).get();
 
-      if (!doc.exists) {
-        await auth.signOut();
-        toast('User profile not found. Please sign up again.');
-        return;
-      }
+      let profile;
 
-      const profile = doc.data();
+      if (!doc.exists) {
+        profile = {
+          name: data.email.split('@')[0],
+          email: data.email,
+          role: 'buyer'
+        };
+
+        await db.collection('users').doc(uid).set({
+          ...profile,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        profile = doc.data();
+      }
 
       e.target.reset();
 
       setUser({
         id: uid,
-        name: profile.name,
-        role: profile.role,
-        email: profile.email
+        name: profile.name || data.email.split('@')[0],
+        role: profile.role || 'buyer',
+        email: data.email
       });
 
       toast('Login successful!');
+
     } catch (error) {
       console.error('Login error:', error);
-
-      toast(
-        error.code === 'auth/invalid-credential' ||
-        error.code === 'auth/user-not-found' ||
-        error.code === 'auth/wrong-password'
-          ? 'Email or password is incorrect.'
-          : 'Login failed. Please try again.'
-      );
+      toast(error.message || 'Login failed. Please try again.', true);
     }
   });
 });
-
 
 /* ---------- Marketplace ---------- */
 async function loadCrops() {
