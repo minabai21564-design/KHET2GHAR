@@ -378,7 +378,6 @@ function renderCrops() {
     </article>`).join('')
     : '<div class="empty">No crops available yet.</div>';
 }
-
 $('#grid').addEventListener('click', (e) => {
   const id = e.target.dataset.id;
   if (!id) return;
