@@ -385,9 +385,6 @@ function renderCrops() {
     : '<div class="empty">No produce matches yet. Check your search, category and location filters.</div>';
 }
 
-
-['#q', '#cat', '#loc', '#sort'].forEach((s) => $(s).addEventListener('input', renderCrops));
-
 $('#grid').addEventListener('click', (e) => {
   const id = e.target.dataset.id;
   if (!id) return;
