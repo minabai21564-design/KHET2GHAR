@@ -352,22 +352,7 @@ async function loadCrops() {
 }
 
 function renderCrops() {
-  const q = ($('#q').value || '').toLowerCase().trim();
-  const cat = $('#cat').value;
-  const loc = ($('#loc').value || '').toLowerCase().trim();
-  const sort = $('#sort').value;
-
-  const list = crops.filter((c) =>
-    String(c.Crop || '').toLowerCase().includes(q) &&
-    (!cat || String(c.Category || '').toLowerCase() === cat.toLowerCase()) &&
-    String(c.Location || '').toLowerCase().includes(loc)
-  );
-
-  if (sort === 'low') list.sort((a, b) => a['Price (Rs/kg)'] - b['Price (Rs/kg)']);
-  else if (sort === 'high') list.sort((a, b) => b['Price (Rs/kg)'] - a['Price (Rs/kg)']);
-
-  $('#stats').textContent =
-    `${crops.length} live listing${crops.length === 1 ? '' : 's'} from ${new Set(crops.map((c) => c['Farmer ID'])).size} farmer(s).`;
+  const list = [...crops];
 
   const canOrder = !!auth.currentUser && user && user.role === 'buyer';
 
@@ -382,7 +367,7 @@ function renderCrops() {
         ${canOrder ? `<button class="btn dark" data-id="${esc(c.ID)}">Order now</button>` : ''}
       </div>
     </article>`).join('')
-    : '<div class="empty">No produce matches yet. Check your search, category and location filters.</div>';
+    : '<div class="empty">No crops available yet.</div>';
 }
 
 $('#grid').addEventListener('click', (e) => {
