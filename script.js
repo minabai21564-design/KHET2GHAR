@@ -18,6 +18,7 @@ const ICONS = { Vegetables: '🥬', Fruits: '🍎', Grains: '🌾', Pulses: '�
 const NAME_ICONS = { tomato: '🍅', potato: '🥔', apple: '🍎', wheat: '🌾', onion: '🧅', mango: '🥭', banana: '🍌', carrot: '🥕', corn: '🌽', rice: '🍚', chilli: '🌶️', brinjal: '🍆' };
 const SCREENS = ['auth', 'role', 'farmer', 'buyer', 'home'];
 let crops = [], selected = null, splashDone = false;
+let farmerOrdersUnsubscribe = null;
 let user = JSON.parse(localStorage.getItem('k2g_user') || 'null');
 
 const money = (n) => '₹' + Number(n).toLocaleString('en-IN');
