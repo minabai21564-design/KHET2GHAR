@@ -171,15 +171,24 @@ window.addEventListener('hashchange', () => {
 function setUser(u) { user = u; localStorage.setItem('k2g_user', JSON.stringify(u)); location.hash = '#/home'; route(); }
 function logout() { user = null; localStorage.removeItem('k2g_user'); location.hash = '#/auth'; route(); toast('You have logged out.'); }
 
-function renderHome() {
-  const farmer = user.role !== 'buyer';
-  $('#session').innerHTML = `<span>${esc(user.name)} <small>(${esc(user.id)})</small></span><button class="btn small ghost" id="out">Log out</button>`;
-  $('#out').onclick = logout;
-  $('#exportBtn').hidden = !(user.role === 'tester' && !CONFIG.scriptUrl);
-  $('#greet').textContent = `Namaste, ${user.name.split(' ')[0]}. ${farmer ? 'Your crops, your price.' : 'Fresh produce is waiting.'}`;
-  ['#sell', '#sellLink', '#heroSell'].forEach((s) => ($(s).hidden = !farmer));
-}
+function renderCrops() {
+  const list = [...crops];
 
+  const canOrder = !!auth.currentUser && user && user.role === 'buyer';
+
+  $('#grid').innerHTML = list.length ? list.map((c) => `
+    <article class="crop">
+      <div class="pic" aria-hidden="true">${iconFor(c)}</div>
+      <div class="body">
+        <h3>${esc(c.Crop)}</h3>
+        <div class="price">${money(c['Price (Rs/kg)'])}<small> / kg</small></div>
+        <div class="meta">${esc(c['Quantity (kg)'])} kg available · ${esc(c.Category)}</div>
+        <div class="meta">${esc(c['Farmer Name'])}${c.Location ? ', ' + esc(c.Location) : ''}</div>
+        ${canOrder ? `<button class="btn dark" data-id="${esc(c.ID)}">Order now</button>` : ''}
+      </div>
+    </article>`).join('')
+    : '<div class="empty">No crops available yet.</div>';
+}
 /* ---------- Splash ---------- */
 function startSplash() {
   const finish = () => {
