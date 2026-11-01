@@ -152,6 +152,26 @@ async function api(url, data) {
 // ==== BACKEND END ====
 
 /* ---------- Routing between screens ---------- */
+function renderHome() {
+  const farmer = user.role === 'farmer';
+
+  $('#session').innerHTML = `<span>${esc(user.name)} <small>(${esc(user.id)})</small></span><button class="btn small ghost" id="out">Log out</button>`;
+  $('#out').onclick = logout;
+
+  $('#exportBtn').hidden = !(user.role === 'tester' && !CONFIG.scriptUrl);
+
+  $('#greet').textContent = `Namaste, ${user.name.split(' ')[0]}. ${farmer ? 'Your crops, your price.' : 'Fresh produce is waiting.'}`;
+
+  ['#sell', '#sellLink', '#heroSell'].forEach((s) => {
+    $(s).hidden = !farmer;
+  });
+
+  $('#farmerOrders').hidden = !farmer;
+
+  if (farmer) {
+    loadFarmerOrders();
+  }
+}
 function route() {
   if (!splashDone) return;
   let name = (location.hash.match(/^#\/(\w+)/) || [])[1];
