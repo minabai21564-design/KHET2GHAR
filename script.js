@@ -212,6 +212,46 @@ function loadFarmerOrders() {
         '<p>Could not load orders. Check Firestore rules.</p>';
     });
 }
+
+function loadFarmerOrders() {
+  if (!auth.currentUser) return;
+
+  if (farmerOrdersUnsubscribe) {
+    farmerOrdersUnsubscribe();
+  }
+
+  farmerOrdersUnsubscribe = db.collection('orders')
+    .where('farmerId', '==', auth.currentUser.uid)
+    .onSnapshot((snapshot) => {
+      const orders = snapshot.docs.map((doc) => doc.data());
+
+      $('#farmerOrderCount').textContent = orders.length;
+
+      $('#farmerOrdersList').innerHTML = orders.length
+        ? orders.map((o) => {
+            const date = o.orderedAt?.toDate
+              ? o.orderedAt.toDate().toLocaleString('en-IN')
+              : 'Just now';
+
+            return `
+              <article class="crop">
+                <div class="body">
+                  <h3>${esc(o.crop || 'Crop')}</h3>
+                  <p>Buyer: ${esc(o.buyerName || 'Unknown')}</p>
+                  <p>Quantity: ${esc(o.quantityKg)} kg</p>
+                  <p>Total: ${money(o.total || 0)}</p>
+                  <p>Status: ${esc(o.status || 'Confirmed')}</p>
+                  <p>Ordered: ${esc(date)}</p>
+                </div>
+              </article>`;
+          }).join('')
+        : '<p class="muted">No orders received yet.</p>';
+    }, (error) => {
+      console.error(error);
+      $('#farmerOrdersList').innerHTML =
+        '<p>Could not load orders. Check Firestore rules.</p>';
+    });
+}
 function route() {
   if (!splashDone) return;
   let name = (location.hash.match(/^#\/(\w+)/) || [])[1];
