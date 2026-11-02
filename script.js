@@ -169,6 +169,13 @@ function renderHome() {
   });
 
   $('#farmerOrders').hidden = !farmer;
+  const buyer = user.role === 'buyer';
+
+$('#buyerOrders').hidden = !buyer;
+
+if (buyer) {
+  loadBuyerOrders();
+}
 
   if (farmer) {
     loadFarmerOrders();
