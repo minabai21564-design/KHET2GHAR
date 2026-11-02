@@ -260,6 +260,35 @@ function loadFarmerOrders() {
         '<p>Could not load orders. Check Firestore rules.</p>';
     });
 }
+function loadBuyerOrders() {
+  if (!auth.currentUser) return;
+
+  if (buyerOrdersUnsubscribe) {
+    buyerOrdersUnsubscribe();
+  }
+
+  buyerOrdersUnsubscribe = db.collection('orders')
+    .where('buyerId', '==', auth.currentUser.uid)
+    .onSnapshot((snapshot) => {
+      const orders = snapshot.docs.map(doc => doc.data());
+
+      $('#buyerOrderCount').textContent = orders.length;
+
+      $('#buyerOrdersList').innerHTML = orders.length
+        ? orders.map(o => `
+          <article class="crop">
+            <div class="body">
+              <h3>${esc(o.crop || 'Crop')}</h3>
+              <p>Farmer: ${esc(o.farmerName || 'Unknown')}</p>
+              <p>Quantity: ${esc(o.quantityKg)} kg</p>
+              <p>Total: ${money(o.total || 0)}</p>
+              <p>Status: ${esc(o.status || 'Confirmed')}</p>
+            </div>
+          </article>
+        `).join('')
+        : '<p class="muted">No orders placed yet.</p>';
+    });
+}
 function route() {
   if (!splashDone) return;
   let name = (location.hash.match(/^#\/(\w+)/) || [])[1];
