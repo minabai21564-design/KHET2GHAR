@@ -472,7 +472,13 @@ $('#loginForm').addEventListener('submit', (e) => {
 /* ---------- Marketplace ---------- */
 async function loadCrops() {
   try {
-    const snap = await db.collection('crops').get();
+    let query = db.collection('crops');
+
+if (user && user.role === 'farmer' && auth.currentUser) {
+  query = query.where('farmerId', '==', auth.currentUser.uid);
+}
+
+const snap = await query.get();
 
     crops = snap.docs.map((doc) => {
       const d = doc.data();
