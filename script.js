@@ -468,7 +468,33 @@ $('#loginForm').addEventListener('submit', (e) => {
     }
   });
 });
+/* ---------- Forgot Password ---------- */
+$('#forgotPassword').addEventListener('click', async (e) => {
+  e.preventDefault();
 
+  const email = $('#loginForm input[name="email"]').value.trim();
+
+  if (!email) {
+    toast('Please enter your registered email address first.', true);
+    $('#loginForm input[name="email"]').focus();
+    return;
+  }
+
+  try {
+    await auth.sendPasswordResetEmail(email);
+    toast('Password reset email sent! Please check your inbox.');
+  } catch (error) {
+    console.error('Password reset error:', error);
+
+    if (error.code === 'auth/user-not-found') {
+      toast('No account found with this email address.', true);
+    } else if (error.code === 'auth/invalid-email') {
+      toast('Please enter a valid email address.', true);
+    } else {
+      toast(error.message || 'Could not send reset email. Please try again.', true);
+    }
+  }
+});
 /* ---------- Marketplace ---------- */
 async function loadCrops() {
   try {
