@@ -553,6 +553,69 @@ function renderCrops() {
     </article>`).join('')
     : '<div class="empty">No crops available yet.</div>';
 }
+
+/* ---------- Shopping Cart ---------- */
+let cart = [];
+
+function renderCart() {
+  const cartSection = $('#cart');
+  const cartItems = $('#cartItems');
+
+  if (!cartSection || !cartItems) return;
+
+  cartSection.hidden = !(auth.currentUser && user && user.role === 'buyer');
+
+  if (!cart.length) {
+    cartItems.innerHTML = '<p class="muted">Your cart is empty.</p>';
+    $('#cartTotal').textContent = 'Total: ₹0';
+    return;
+  }
+
+  cartItems.innerHTML = cart.map((item) => `
+    <div class="cart-item">
+      <b>${esc(item.Crop)}</b>
+      <p>${money(item['Price (Rs/kg)'])} / kg</p>
+      <button class="btn ghost" type="button" data-remove-cart="${esc(item.ID)}">Delete</button>
+    </div>
+  `).join('');
+
+  const total = cart.reduce((sum, item) =>
+    sum + Number(item['Price (Rs/kg)']), 0
+  );
+
+  $('#cartTotal').textContent = `Total: ${money(total)} (1 kg each)`;
+}
+
+/* Add and delete cart items */
+$('#grid').addEventListener('click', (e) => {
+  const addButton = e.target.closest('[data-cart-id]');
+
+  if (addButton) {
+    const item = crops.find(c => c.ID === addButton.dataset.cartId);
+
+    if (!item) return;
+
+    if (cart.some(c => c.ID === item.ID)) {
+      toast('This crop is already in your cart.', true);
+      return;
+    }
+
+    cart.push(item);
+    renderCart();
+    toast('Added to cart!');
+  }
+});
+
+$('#cartItems').addEventListener('click', (e) => {
+  const deleteButton = e.target.closest('[data-remove-cart]');
+
+  if (!deleteButton) return;
+
+  cart = cart.filter(item => item.ID !== deleteButton.dataset.removeCart);
+  renderCart();
+  toast('Removed from cart.');
+});
+
 $('#grid').addEventListener('click', (e) => {
   const id = e.target.dataset.id;
   if (!id) return;
