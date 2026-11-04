@@ -535,9 +535,9 @@ const snap = await query.get();
   renderCrops();
 }
 
+
 function renderCrops() {
   const list = [...crops];
-
   const canOrder = !!auth.currentUser && user && user.role === 'buyer';
 
   $('#grid').innerHTML = list.length ? list.map((c) => `
@@ -548,11 +548,14 @@ function renderCrops() {
         <div class="price">${money(c['Price (Rs/kg)'])}<small> / kg</small></div>
         <div class="meta">${esc(c['Quantity (kg)'])} kg available · ${esc(c.Category)}</div>
         <div class="meta">${esc(c['Farmer Name'])}${c.Location ? ', ' + esc(c.Location) : ''}</div>
-        ${canOrder ? `<button class="btn dark" data-id="${esc(c.ID)}">Order now</button>` : ''}
+        ${canOrder ? `
+          <button class="btn" type="button" data-cart-id="${esc(c.ID)}">Add to Cart</button>
+          <button class="btn dark" type="button" data-id="${esc(c.ID)}">Order now</button>
+        ` : ''}
       </div>
     </article>`).join('')
     : '<div class="empty">No crops available yet.</div>';
-}
+                                                                }
 
 /* ---------- Shopping Cart ---------- */
 let cart = [];
