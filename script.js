@@ -310,9 +310,9 @@ function setUser(u) { user = u; localStorage.setItem('k2g_user', JSON.stringify(
 function logout() { user = null; localStorage.removeItem('k2g_user'); location.hash = '#/auth'; route(); toast('You have logged out.'); }
 
 
+
 function renderCrops() {
   const list = [...crops];
-
   const canOrder = !!auth.currentUser && user && user.role === 'buyer';
 
   $('#grid').innerHTML = list.length ? list.map((c) => `
