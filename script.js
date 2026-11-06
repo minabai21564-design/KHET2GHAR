@@ -705,6 +705,12 @@ $('#orderForm').addEventListener('submit', async (e) => {
 });
 $('#cropForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const prohibitedCrops = [
+  'ganja',
+  'cannabis',
+  'marijuana',
+  'hemp'
+];
 
   if (!auth.currentUser || user.role !== 'farmer') {
     toast('Please log in as a farmer.', true);
@@ -713,6 +719,12 @@ $('#cropForm').addEventListener('submit', async (e) => {
 
   const form = e.currentTarget;
   const data = Object.fromEntries(new FormData(form));
+  const cropName = String(data.crop || '').trim().toLowerCase();
+
+if (prohibitedCrops.some(item => cropName.includes(item))) {
+  toast('Sorry! This product is not allowed on Khet2Ghar.', true);
+  return;
+}
   const btn = form.querySelector('button[type="submit"]');
 
   btn.disabled = true;
